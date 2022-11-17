@@ -4,15 +4,27 @@ import math as math
 
 pygame.init()
 
-WHITE = (250,250,250)
-BLACK = (30,30,30)
-BLUE = (0,0,255)
+WHITE = (250, 250, 250)
+BLACK = (30, 30, 30)
+BLUE = (0, 0, 255)
+SKY = (40,50,60)
+GROUND = (50,105,50)
+RED = (255, 0, 0)
 
 carryOn = True
 tilesize = 40
-size = (800,400)
+size = (800, 800)
 screen = pygame.display.set_mode(size)
 pygame.display.set_caption("RayCasting")
+
+mapsize = 10
+precision = 20
+
+fov = 100 * (math.pi / 180)  # fov is rays casted in radiant
+rays = 100  # its the fov in degrees
+renderWidth = size[0] # size[0]/2
+
+startRect = 0 # size[0]/2
 
 clock = pygame.time.Clock()
 
@@ -36,12 +48,33 @@ carte = [
 ]
 
 
+def calcPosX(ray, depth, startAngle):
+    return (player.rect.x + 10) + ((tilesize/precision) * depth) * (math.sin(player.angle - fov/2 + (fov/rays * ray)))
+
+
+def calcPosY(ray, depth, startAngle):
+    return (player.rect.y + 10) + ((tilesize/precision) * depth) * (math.cos(player.angle - fov/2 + (fov/rays * ray)))
+
+
+def renderRayCast():
+    startAngle = fov/2
+    for ray in range(rays):
+        for depth in range(mapsize * precision):
+            dotX = calcPosX(ray, depth, startAngle)
+            dotY = calcPosY(ray, depth, startAngle)
+            #circle = pygame.draw.circle(screen, RED, [calcPosX(ray, depth, startAngle), calcPosY(ray, depth, startAngle)], 2)
+            if carte[int(dotY/40)][int(dotX/40)] != '0':
+                pygame.draw.rect(screen, [depth,depth,depth], [size[0] - (ray * renderWidth/(rays-1)) ,(size[1] - ((size[1]*10) /(depth + 1)))/2,renderWidth/rays+1,(size[1]*10)/(depth+1)])
+                break
+
 
 def map2D():
     for row in range(10):
         for col in range(10):
             if carte[row][col] == '1':
-                pygame.draw.rect(screen, BLACK , [col * tilesize , row * tilesize, tilesize,tilesize])
+                pygame.draw.rect(
+                    screen, BLACK, [col * tilesize, row * tilesize, tilesize, tilesize])
+
 
 def movement():
     keys = pygame.key.get_pressed()
@@ -54,28 +87,29 @@ def movement():
     if keys[pygame.K_DOWN]:
         player.moveBackward()
 
+
 while carryOn:
-    #close tab
+    # close tab
     for event in pygame.event.get():
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_x:
                 carryOn = False
-           
-    #logic       
-    movement()     
-    all_sprites_list.update()            
-    
-    #display
-    
+
+    # logic
+    movement()
+    all_sprites_list.update()
+
+    # display
+
     screen.fill(WHITE)
-    map2D()
-    pygame.draw.line(screen, BLUE, [player.rect.x + 10,player.rect.y + 10], [(player.rect.x + 10)+30*math.sin(player.angle),(player.rect.y + 10)+30*math.cos(player.angle)])
-    all_sprites_list.draw(screen)
+    #map2D()
+    pygame.draw.rect(screen, BLUE, [startRect,0,renderWidth,size[1]/2])
+    pygame.draw.rect(screen, GROUND, [startRect,size[1]/2,renderWidth,size[1]/2])
+    renderRayCast()
+    #all_sprites_list.draw(screen)
+
     pygame.display.flip()
-    
-    
+
     clock.tick(60)
 
 pygame.quit()
-
-
