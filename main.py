@@ -13,18 +13,27 @@ RED = (255, 0, 0)
 
 carryOn = True
 tilesize = 40
-size = (800, 800)
+size = (800, 400)
 screen = pygame.display.set_mode(size)
 pygame.display.set_caption("RayCasting")
 
 mapsize = 10
 precision = 20
-
-fov = 100 * (math.pi / 180)  # fov is rays casted in radiant
-rays = 100  # its the fov in degrees
-renderWidth = size[0] # size[0]/2
-
+fov = 120 * (math.pi / 180)  # fov is rays casted in radiant
+rays = int(size[0])  # its the fov in degrees
 startRect = 0 # size[0]/2
+renderWidth = size[0] # size[0]/2
+debug = True
+
+
+if debug:
+    renderWidth = size[0]/2
+    startRect = size[0]/2
+    rays = int(size[0]/2)
+
+
+
+
 
 clock = pygame.time.Clock()
 
@@ -39,7 +48,7 @@ carte = [
     '1000100001',
     '1000100001',
     '1000000001',
-    '1000100001',
+    '1000111011',
     '1000100001',
     '1000100001',
     '1000100001',
@@ -62,9 +71,10 @@ def renderRayCast():
         for depth in range(mapsize * precision):
             dotX = calcPosX(ray, depth, startAngle)
             dotY = calcPosY(ray, depth, startAngle)
-            #circle = pygame.draw.circle(screen, RED, [calcPosX(ray, depth, startAngle), calcPosY(ray, depth, startAngle)], 2)
+            if debug:
+                circle = pygame.draw.circle(screen, RED, [calcPosX(ray, depth, startAngle), calcPosY(ray, depth, startAngle)], 2)
             if carte[int(dotY/40)][int(dotX/40)] != '0':
-                pygame.draw.rect(screen, [depth,depth,depth], [size[0] - (ray * renderWidth/(rays-1)) ,(size[1] - ((size[1]*10) /(depth + 1)))/2,renderWidth/rays+1,(size[1]*10)/(depth+1)])
+                pygame.draw.rect(screen, [depth/2,depth/2,depth/2], [size[0] - (ray * renderWidth/(rays-1)) ,(size[1] - ((size[1]*2) /(depth + 1)))/2,renderWidth/rays+1,(size[1]*2)/(depth+1)])
                 break
 
 
@@ -102,11 +112,15 @@ while carryOn:
     # display
 
     screen.fill(WHITE)
-    #map2D()
+    if debug:
+        map2D()
+        
     pygame.draw.rect(screen, BLUE, [startRect,0,renderWidth,size[1]/2])
     pygame.draw.rect(screen, GROUND, [startRect,size[1]/2,renderWidth,size[1]/2])
     renderRayCast()
-    #all_sprites_list.draw(screen)
+    
+    if debug:
+        all_sprites_list.draw(screen)
 
     pygame.display.flip()
 
